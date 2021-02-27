@@ -16,14 +16,12 @@ module.exports = app => {
           message: "登录成功"
         })
       } else {
-        res.send({
-          status: 1,
+       res.status(422).send({
           message: "用户名或密码错误"
         })
       }
     } else {
-      res.send({
-        status: 1,
+      res.status(422).send({
         message: "用户名或密码错误"
       })
     }
@@ -42,7 +40,7 @@ module.exports = app => {
       return v.email == email
     })
     if (!filterUser.length && !filterEmail.length) {
-      req.body.id = currFileObj.length + 1
+      req.body.id = currFileObj[currFileObj.length-1].id + 1
       currFileObj.push(req.body);
       fs.writeFileSync('./user/user.json', JSON.stringify(currFileObj));
       res.send({
@@ -51,12 +49,12 @@ module.exports = app => {
       })
     } else {
       if (filterUser.length) {
-        res.send({
+        res.status(422).send({
           status: 1,
           message: "用户名存在"
         })
       } else {
-        res.send({
+       res.status(422).send({
           status: 1,
           message: "邮箱已使用"
         })
@@ -74,7 +72,7 @@ module.exports = app => {
   })
 
   //新建用户
-  app.post('/web/api/addUser', async (req, res) => {
+  app.post('/web/api/addUsers', async (req, res) => {
     const { username, email } = req.body
     const currFile = fs.readFileSync('./user/user.json');
     const currFileObj = JSON.parse(currFile);
@@ -85,7 +83,7 @@ module.exports = app => {
       return v.email == email
     })
     if (!filterUser.length && !filterEmail.length) {
-      req.body.id = currFileObj.length + 1
+      req.body.id = currFileObj[currFileObj.length-1].id + 1
       currFileObj.push(req.body);
       fs.writeFileSync('./user/user.json', JSON.stringify(currFileObj));
       res.send({
@@ -94,12 +92,12 @@ module.exports = app => {
       })
     } else {
       if (filterUser.length) {
-        res.send({
+        res.status(422).send({
           status: 1,
           message: "用户名存在"
         })
       } else {
-        res.send({
+       res.status(422).send({
           status: 1,
           message: "邮箱已使用"
         })
@@ -120,7 +118,7 @@ module.exports = app => {
   })
 
   //修改用户资料
-  app.put('/web/api/modify/:id', async (req, res) => {
+  app.post('/web/api/editUsers/:id', async (req, res) => {
     const id = req.params.id
     const { username, email } = req.body
     const currFile = fs.readFileSync('./user/user.json');
