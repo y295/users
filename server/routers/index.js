@@ -1,6 +1,9 @@
+
+var express = require('express');
+var router = express.Router();
+const multiparty = require('multiparty');
+const fs = require('fs')
 module.exports = app => {
-  const express = require('express')
-  const fs = require('fs')
   // 登录
   app.post('/web/api/login', async (req, res) => {
     const { username, password } = req.body
@@ -16,14 +19,12 @@ module.exports = app => {
           message: "登录成功"
         })
       } else {
-        res.send({
-          status: 1,
+        res.status(422).send({
           message: "用户名或密码错误"
         })
       }
     } else {
-      res.send({
-        status: 1,
+      res.status(422).send({
         message: "用户名或密码错误"
       })
     }
@@ -42,7 +43,11 @@ module.exports = app => {
       return v.email == email
     })
     if (!filterUser.length && !filterEmail.length) {
-      req.body.id = currFileObj.length + 1
+      if (currFileObj.length) {
+        req.body.id = currFileObj[currFileObj.length - 1].id + 1
+      } else {
+        req.body.id = 1
+      }
       currFileObj.push(req.body);
       fs.writeFileSync('./user/user.json', JSON.stringify(currFileObj));
       res.send({
@@ -51,13 +56,11 @@ module.exports = app => {
       })
     } else {
       if (filterUser.length) {
-        res.send({
-          status: 1,
-          message: "用户名存在"
+        res.status(422).send({
+          message: "用户名已存在"
         })
       } else {
-        res.send({
-          status: 1,
+        res.status(422).send({
           message: "邮箱已使用"
         })
       }
@@ -74,7 +77,7 @@ module.exports = app => {
   })
 
   //新建用户
-  app.post('/web/api/addUser', async (req, res) => {
+  app.post('/web/api/addUsers', async (req, res) => {
     const { username, email } = req.body
     const currFile = fs.readFileSync('./user/user.json');
     const currFileObj = JSON.parse(currFile);
@@ -85,7 +88,12 @@ module.exports = app => {
       return v.email == email
     })
     if (!filterUser.length && !filterEmail.length) {
-      req.body.id = currFileObj.length + 1
+      if (currFileObj.length) {
+        req.body.id = currFileObj[currFileObj.length - 1].id + 1
+      } else {
+        req.body.id = 1
+      }
+
       currFileObj.push(req.body);
       fs.writeFileSync('./user/user.json', JSON.stringify(currFileObj));
       res.send({
@@ -94,13 +102,11 @@ module.exports = app => {
       })
     } else {
       if (filterUser.length) {
-        res.send({
-          status: 1,
-          message: "用户名存在"
+        res.status(422).send({
+          message: "用户名已存在"
         })
       } else {
-        res.send({
-          status: 1,
+        res.status(422).send({
           message: "邮箱已使用"
         })
       }
@@ -120,7 +126,7 @@ module.exports = app => {
   })
 
   //修改用户资料
-  app.put('/web/api/modify/:id', async (req, res) => {
+  app.post('/web/api/editUsers/:id', async (req, res) => {
     const id = req.params.id
     const { username, email } = req.body
     const currFile = fs.readFileSync('./user/user.json');
@@ -150,13 +156,11 @@ module.exports = app => {
 
     } else {
       if (filterUser.length) {
-        res.send({
-          status: 1,
+        res.status(422).send({
           message: "用户名已存在"
         })
       } else {
-        res.send({
-          status: 1,
+        res.status(422).send({
           message: "邮箱已使用"
         })
       }
@@ -181,7 +185,7 @@ module.exports = app => {
     })
   })
 
-   //搜索结果
+  //搜索结果
   app.get('/web/api/searchList/:value', async (req, res) => {
     const value = req.params.value
     const currFile = fs.readFileSync('./user/user.json');
@@ -192,5 +196,38 @@ module.exports = app => {
     })
     res.send(filterUser)
   })
+
+  router.post('/changePhoto', function (req, res) {
+    // console.log(req);
+    /* 生成multiparty对象，并配置上传目标路径 */
+    let form = new multiparty.Form();
+    /* 设置编辑 */
+    form.encoding = 'utf-8';
+    //设置文件存储路劲
+    form.uploadDir = './tmplFile';
+    //设置文件大小限制
+    // form.maxFilesSize = 1 * 1024 * 1024;
+    console.log(form.parse);
+    form.parse(req, function (err, fields, files) {
+      try {
+        console.log(fields)
+        let inputFile = files.file[0];
+        let uploadedPath = inputFile.path;
+        let newPath = form.uploadDir + "/" + inputFile.originalFilename;
+        //同步重命名文件名 fs.renameSync(oldPath, newPath)
+        fs.renameSync(inputFile.path, newPath);
+        res.send({ data: "上传成功！" });
+        //读取数据后 删除文件
+        // fs.unlink(newPath, function () {
+        //   console.log("删除上传文件");
+        // })
+      } catch (err) {
+        console.log(err);
+        res.send({ err: "上传失败！" });
+      };
+    })
+
+  })
+  app.use("/web/api", router)
 }
 
