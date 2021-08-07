@@ -5,6 +5,7 @@ import userList from "../view/userList.vue"
 import addUsers from "../view/addUsers.vue"
 import editUsers from "../view/editUsers.vue"
 import searchList from "../view/searchList.vue"
+import Userinfo from "../view/userinfo.vue"
 const routers = [
     {
         path: "/",
@@ -21,6 +22,7 @@ const routers = [
             { path: '/home/addUsers', component: addUsers },
             { path: '/home/editUsers/:id', component: editUsers, props: true },
             { path: '/home/searchList/:value', component: searchList, props: true },
+            { path: '/home/userinfo/:id', component: Userinfo, props: true },
         ]
 
     },

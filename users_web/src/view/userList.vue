@@ -5,7 +5,7 @@
         <h1>用户列表</h1>
       </el-col>
     </el-row>
-    <tableData :data="allUserList" @table_updata="getUserList"></tableData>
+    <tableData :data="allUserList" @table_updata="tableUpdata"></tableData>
   </div>
 </template>
 
@@ -25,7 +25,10 @@ export default {
     async getUserList() {
       const res = await this.$http.get("/userList" + "?data=" + new Date().getTime());
       this.allUserList = res.data;
-      console.log("111");
+    },
+    async tableUpdata() {
+      const res = await this.$http.get("/userList" + "?data=" + new Date().getTime());
+      this.allUserList = res.data;
     },
   },
   mounted() {},

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-table :data="currentUserList" style="width: 100%">
+    <el-table :data="currentUserList" style="width: 100%" @row-click="goUser">
       <el-table-column prop="username" label="用户名" min-width="200"> </el-table-column>
       <el-table-column prop="email" label="邮箱" min-width="200"> </el-table-column>
       <el-table-column prop="sex" label="性别" min-width="200"> </el-table-column>
@@ -11,18 +11,26 @@
             type="primary"
             icon="el-icon-edit"
             circle
-            @click="() => $router.push(`/home/editUsers/${scope.row.id}`)"
+            @click.stop="() => $router.push(`/home/editUsers/${scope.row.id}`)"
           ></el-button>
           <el-button
             type="danger"
             icon="el-icon-delete"
             circle
-            @click="isDelete(scope.row.id)"
+            @click.stop="isDelete(scope.row.id)"
           ></el-button>
         </template>
       </el-table-column>
     </el-table>
-    <el-dialog title="提示" :visible.sync="dialogVisible" width="20%">
+    <el-dialog
+      title="提示"
+      :visible.sync="dialogVisible"
+      width="20%"
+      :lock-scroll="true"
+      :modal="false"
+      :append-to-body="true"
+      ref="dialog"
+    >
       <span>是否删除</span>
       <span slot="footer" class="dialog-footer">
         <el-button @click="dialogVisible = false">取 消</el-button>
@@ -34,7 +42,9 @@
         <el-pagination
           background
           layout="prev, pager, next"
-          :page-count="allPage"
+          :total="data.length"
+          :page-size="11"
+          :current-page="currentPage"
           @current-change="getCurrentPage"
         >
         </el-pagination
@@ -52,12 +62,10 @@ export default {
       currentPage: 1,
       dialogVisible: false,
       deletedOptionId: "",
+      showHidden: true,
     };
   },
   computed: {
-    allPage() {
-      return Math.ceil(this.data.length / 11);
-    },
     currentUserList() {
       return this.data.slice((this.currentPage - 1) * 11, this.currentPage * 11);
     },
@@ -69,37 +77,38 @@ export default {
     },
     async deleted() {
       const res = await this.$http.delete(`/delete/${this.deletedOptionId}`);
-      this.tableUpdata;
+      // await this.tableUpdata();
       if (res.data.status === 0) {
         this.$message({
           type: "success",
           message: res.data.message,
         });
         this.dialogVisible = false;
-
+        this.$emit("table_updata");
         // await this.getUserList();
-        console.log(this.currentUserList);
-        console.log(this.currentPage);
-        if (!this.currentUserList.length && this.currentPage != 1) {
+        if (this.currentUserList.length == 1 && this.currentPage != 1) {
           this.currentPage--;
-          console.log(this.currentUserList);
+          sessionStorage.setItem("currentPage", this.currentPage);
         }
       }
     },
     getCurrentPage(currentPage) {
       this.currentPage = currentPage;
-      console.log(this.currentPage);
+      sessionStorage.setItem("currentPage", this.currentPage);
     },
-    tableUpdata() {
+    async tableUpdata() {
       this.$emit("table_updata");
+    },
+    goUser(row) {
+      this.$router.push(`/home/userinfo/${row.id}`);
     },
   },
   mounted() {},
   created() {
     // this.getUserList();
-    // if (sessionStorage.getItem("currentPage")) {
-    //   this.currentPage = sessionStorage.getItem("currentPage");
-    // }
+    if (sessionStorage.getItem("currentPage")) {
+      this.currentPage = parseInt(sessionStorage.getItem("currentPage"));
+    }
   },
 };
 </script>

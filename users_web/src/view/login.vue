@@ -1,5 +1,5 @@
 <template>
-  <div class="body-bg">
+  <div class="body-bg" v-loading="loading" element-loading-text="登录中">
     <div class="page-login">
       <el-card class="card-view" :body-style="{ padding: '0px' }">
         <div slot="header">
@@ -12,9 +12,10 @@
           label-width="80px"
           :rules="rules"
           :model="model"
+          @keyup.enter.native="login('ruleForm')"
         >
           <el-form-item label="用户名" prop="username">
-            <el-input v-model="model.username"></el-input>
+            <el-input v-model="model.username" autofocus></el-input>
           </el-form-item>
           <el-form-item label="密码" prop="password">
             <el-input type="password" v-model="model.password"></el-input>
@@ -35,6 +36,7 @@
 export default {
   data() {
     return {
+      loading: false,
       model: {
         username: "",
         password: "",
@@ -58,12 +60,16 @@ export default {
           //   alert("submit!");
           const res = await this.$http.post("/login", this.model);
           if (res.data.status === 0) {
-            this.$message({
-              type: "success",
-              message: res.data.message,
-            });
-            sessionStorage.setItem("username", this.model.username);
-            this.$router.push("/");
+            this.loading = true;
+            setTimeout(() => {
+              this.$message({
+                type: "success",
+                message: res.data.message,
+              });
+              sessionStorage.setItem("username", this.model.username);
+              this.loading = false;
+              this.$router.push("/");
+            }, 3000);
           }
         } else {
           //   console.log("error submit!!");
@@ -83,6 +89,7 @@ export default {
   top: 0;
   left: 0;
   overflow-y: auto;
+  min-width: 1280px;
 }
 .page-login {
   display: flex;

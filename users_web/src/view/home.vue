@@ -27,23 +27,41 @@
             ></el-col>
             <el-col :span="12">
               <div class="header_right">
+                <el-avatar :src="photoPath" :size="50"></el-avatar>
+                <div class="username">
+                  <span>{{ username }}</span>
+                </div>
                 <el-dropdown @command="command">
                   <i class="el-icon-setting" style="margin-right: 15px"></i>
                   <el-dropdown-menu slot="dropdown">
+                    <el-dropdown-item
+                      ><el-badge :value="12" class="item">
+                        评论
+                      </el-badge></el-dropdown-item
+                    >
+                    <el-dropdown-item
+                      ><el-badge :value="5" class="item">
+                        回复
+                      </el-badge></el-dropdown-item
+                    >
                     <el-dropdown-item command="signOut">退出 </el-dropdown-item>
                   </el-dropdown-menu>
                 </el-dropdown>
-                <span>{{ username }}</span>
               </div>
             </el-col>
           </el-row>
         </el-header>
 
-        <el-main>
-          <router-view :key="$route.path"></router-view>
+        <el-main class="target_back">
+          <keep-alive>
+            <router-view :key="$route.path"></router-view>
+          </keep-alive>
         </el-main>
       </el-container>
     </el-container>
+    <template>
+      <el-backtop target=".target_back" :visibility-height="10"></el-backtop>
+    </template>
   </div>
 </template>
 
@@ -53,9 +71,16 @@ export default {
     return {
       username: "",
       searchValue: "",
+      photoPath: "https://cube.elemecdn.com/9/c2/f0ee8a3c7c9638a54940382568c9dpng.png",
     };
   },
   methods: {
+    async getPhoto() {
+      const res = await this.$http.get(`/getPhoto/${this.username}`);
+      if (res.data) {
+        this.photoPath = "http://localhost:3000/" + res.data;
+      }
+    },
     toSearch() {
       if (this.searchValue) {
         this.$router.push(`/home/searchList/${this.searchValue}`);
@@ -71,6 +96,7 @@ export default {
     // PushMenu();
     if (sessionStorage.getItem("username")) {
       this.username = sessionStorage.getItem("username");
+      this.getPhoto();
     } else {
       this.$router.push("/login");
     }
@@ -95,7 +121,13 @@ export default {
 .el-header .el-input {
 }
 .header_right {
-  float: right;
+  /* float: right; */
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+.header_right .username {
+  margin: 0 10px;
 }
 .el-aside {
   color: #333;
